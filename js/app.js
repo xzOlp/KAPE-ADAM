@@ -7,7 +7,7 @@
   } = window.EmbOak;
 
   const {
-    signUp, signIn, signOut, getSession, refreshSession, getProfile, saveOrder, getOrders, onAuthChange,
+    signUp, signIn, signOut, getSession, getUser, getProfile, saveOrder, getOrders, onAuthChange,
   } = window.EmbOakSupabase;
 
   const navBar        = document.getElementById('navbar');
@@ -236,9 +236,9 @@
   }
 
   /* ---- Auth init ---- */
-  async function verifySession(userId) {
-    const { session: refreshed } = await refreshSession();
-    if (!refreshed) {
+  async function verifySession() {
+    const { user, error } = await getUser();
+    if (error || !user) {
       currentUser = null;
       navUser.style.display = 'none';
       setLoginMode(false);
@@ -246,27 +246,18 @@
       showToast(toastEl, 'Session expired — please sign in again');
       return false;
     }
-    currentUser = refreshed.user;
-    const { data: profile } = await getProfile(userId);
-    if (!profile) {
-      await signOut();
-      currentUser = null;
-      navUser.style.display = 'none';
-      setLoginMode(false);
-      showOverlay();
-      showToast(toastEl, 'Session expired — please sign in again');
-      return false;
-    }
-    navUserEmail.textContent = profile.email || 'User';
+    currentUser = user;
+    navUserEmail.textContent = user.email || 'User';
     navUser.style.display = 'flex';
     return true;
   }
 
   async function initAuth() {
+    overlay.classList.remove('loading');
     const { session } = await getSession();
     if (session) {
       currentUser = session.user;
-      const ok = await verifySession(session.user.id);
+      const ok = await verifySession();
       if (ok) dismissOverlay();
     } else {
       setLoginMode(false);
@@ -277,7 +268,7 @@
   onAuthChange(async (event, session) => {
     if (event === 'SIGNED_IN' && session) {
       currentUser = session.user;
-      const ok = await verifySession(session.user.id);
+      const ok = await verifySession();
       if (ok) dismissOverlay();
     } else if (event === 'SIGNED_OUT') {
       currentUser = null;

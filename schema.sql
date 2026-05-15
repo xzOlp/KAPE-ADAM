@@ -44,3 +44,16 @@ $$;
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function handle_new_user();
+
+-- 4. ADMIN DELETE USER (deletes orders, profile, and auth user)
+create or replace function admin_delete_user(target_id uuid)
+returns void
+language plpgsql
+security definer
+as $$
+begin
+  delete from public.orders where user_id = target_id;
+  delete from public.profiles where id = target_id;
+  delete from auth.users where id = target_id;
+end;
+$$;

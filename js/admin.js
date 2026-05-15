@@ -184,23 +184,13 @@
         if (!confirm('Delete user ' + user.email + ' and all their orders?')) return;
         const uid = card.dataset.id;
 
-        const { error: delOrders } = await supabase.from('orders').delete().eq('user_id', uid);
-        if (delOrders) { toast('Error deleting orders: ' + delOrders.message); return; }
+        const { error } = await supabase.rpc('admin_delete_user', { target_id: uid });
+        if (error) { toast('Delete failed: ' + error.message); return; }
 
-        const { error: delProfile } = await supabase.from('profiles').delete().eq('id', uid);
-        if (delProfile) { toast('Error deleting profile: ' + delProfile.message); return; }
-
-        const res = await fetch(SUPABASE_URL + '/auth/v1/admin/users/' + uid, {
-          method: 'DELETE',
-          headers: {
-            'apikey': SERVICE_ROLE_KEY,
-            'Authorization': 'Bearer ' + SERVICE_ROLE_KEY,
-          },
-        });
-        if (!res.ok) {
-          const body = await res.text();
-          toast('Auth user may remain: ' + body.slice(0, 80));
-        }
+        card.remove();
+        usersCount.textContent = usersBody.children.length;
+        toast('User deleted');
+      });
 
         card.remove();
         usersCount.textContent = usersBody.children.length;
