@@ -36,6 +36,8 @@
   let currentTab = 'home';
   let currentUser = null;
   let isSignUp = false;
+  let ordersPollTimer = null;
+  let lastOrdersStatus = {};
 
   function updateUI() {
     const count = getCartCount();
@@ -157,7 +159,34 @@
     loginBtn.textContent = isSignUp ? 'Sign Up' : 'Sign In';
   }
 
+  function stopOrdersPolling() {
+    if (ordersPollTimer) { clearInterval(ordersPollTimer); ordersPollTimer = null; }
+    lastOrdersStatus = {};
+  }
+
+  function startOrdersPolling(userId) {
+    stopOrdersPolling();
+    ordersPollTimer = setInterval(async () => {
+      const { orders } = await getOrders(userId);
+      if (!orders) return;
+      let changed = false;
+      orders.forEach(order => {
+        const prev = lastOrdersStatus[order.id];
+        if (prev && prev !== order.status) {
+          changed = true;
+          if (currentTab === 'orders') {
+            renderOrders(userId);
+          } else {
+            showToast(toastEl, 'Order #' + order.id.slice(0, 8) + ' is now ' + order.status);
+          }
+        }
+        lastOrdersStatus[order.id] = order.status;
+      });
+    }, 5000);
+  }
+
   async function handleSignOut() {
+    stopOrdersPolling();
     unsubscribeOrders();
     await signOut();
     currentUser = null;
@@ -288,13 +317,15 @@
     navUser.style.display = 'flex';
 
     subscribeOrders(user.id, function onOrderUpdate(updatedOrder) {
-      if (currentTab === 'orders') {
-        renderOrders(currentUser.id);
-      }
       if (updatedOrder && updatedOrder.status !== 'pending') {
         showToast(toastEl, 'Order #' + updatedOrder.id.slice(0, 8) + ' is now ' + updatedOrder.status);
       }
+      if (currentTab === 'orders') {
+        renderOrders(currentUser.id);
+      }
     });
+
+    startOrdersPolling(user.id);
 
     return true;
   }
