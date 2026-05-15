@@ -74,50 +74,31 @@
     showAdminError('');
   }
 
-  /* ---- Role-based gate ---- */
-  async function tryAutoAuth() {
+  const ADMIN_PASSWORD = 'admin123';
+
+  /* ---- Gate ---- */
+  async function tryAdminSession() {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return false;
-
     const { data: profile } = await supabase
       .from('profiles')
       .select('role')
       .eq('id', session.user.id)
       .maybeSingle();
-
-    if (profile && profile.role === 'admin') {
-      return true;
-    }
-    return false;
+    return profile && profile.role === 'admin';
   }
 
   async function initGate() {
-    if (sessionStorage.getItem('admin_unlocked')) {
-      unlock();
-      return;
-    }
-
-    const ok = await tryAutoAuth();
-    if (ok) {
-      unlock();
-      return;
-    }
+    if (sessionStorage.getItem('admin_unlocked')) { unlock(); return; }
+    if (await tryAdminSession()) { unlock(); return; }
 
     const btn = document.getElementById('gateBtn');
     const pass = document.getElementById('gatePassword');
 
     btn.addEventListener('click', async function () {
-      if (!pass.value) { showAdminError('Enter password'); return; }
-
-      const authed = await tryAutoAuth();
-      if (authed) { unlock(); return; }
-
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        showAdminError('Sign in as an admin on the main site first');
-        return;
-      }
-      showAdminError('Your account does not have admin privileges');
+      if (pass.value === ADMIN_PASSWORD) { unlock(); return; }
+      if (await tryAdminSession()) { unlock(); return; }
+      showAdminError('Incorrect password');
     });
 
     pass.addEventListener('keydown', function (e) {
