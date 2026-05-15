@@ -181,12 +181,14 @@
       });
 
       card.querySelector('.user-btn-delete').addEventListener('click', async function () {
-        if (!confirm('Delete user ' + user.email + '? This will also delete their orders.')) return;
-        const { error } = await supabase.from('profiles').delete().eq('id', card.dataset.id);
-        if (error) { toast('Error: ' + error.message); return; }
+        if (!confirm('Delete user ' + user.email + ' and all their orders?')) return;
+        const { error: delOrders } = await supabase.from('orders').delete().eq('user_id', card.dataset.id);
+        if (delOrders) { toast('Error deleting orders: ' + delOrders.message); return; }
+        const { error: delUser } = await supabase.from('profiles').delete().eq('id', card.dataset.id);
+        if (delUser) { toast('Error deleting user: ' + delUser.message); return; }
         card.remove();
         usersCount.textContent = usersBody.children.length;
-        toast('User deleted');
+        toast('User and their orders deleted');
       });
     });
   }
@@ -294,44 +296,53 @@
       return;
     }
 
-    let totalItems = 0;
-    const groupsHtml = [];
-
+    const flatItems = [];
     data.forEach(order => {
-      const items = order.items || [];
-      if (items.length === 0) return;
-      totalItems += items.length;
-
-      const rowsHtml = items.map(item => `
-        <tr>
-          <td>${item.name}</td>
-          <td class="cell-price">$${parseFloat(item.price).toFixed(2)}</td>
-          <td>${item.quantity}</td>
-          <td class="cell-price">$${(item.price * item.quantity).toFixed(2)}</td>
-        </tr>`).join('');
-
-      groupsHtml.push(`
-        <div class="items-order-group">
-          <div class="items-order-header">
-            Order <strong>#${order.id.slice(0, 8)}</strong>
-            <span style="margin-left:auto;font-family:var(--font-sans);font-weight:400">${items.length} item${items.length !== 1 ? 's' : ''}</span>
-          </div>
-          <table class="items-table">
-            <thead>
-              <tr>
-                <th>Item</th>
-                <th>Price</th>
-                <th>Qty</th>
-                <th>Total</th>
-              </tr>
-            </thead>
-            <tbody>${rowsHtml}</tbody>
-          </table>
-        </div>`);
+      if (order.items && Array.isArray(order.items)) {
+        order.items.forEach(item => {
+          flatItems.push({ ...item, order_id: order.id.slice(0, 8) });
+        });
+      }
     });
 
-    itemsCount.textContent = totalItems;
-    itemsBody.innerHTML = groupsHtml.join('') || '<div class="empty-state"><p>No items found</p></div>';
+    itemsCount.textContent = flatItems.length;
+
+    if (flatItems.length === 0) {
+      itemsBody.innerHTML = '<div class="empty-state"><p>No items found</p></div>';
+      return;
+    }
+
+    let html = `
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Order</th>
+              <th>Item</th>
+              <th>Price</th>
+              <th>Qty</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody>`;
+
+    flatItems.forEach(item => {
+      html += `
+            <tr>
+              <td class="cell-id">#${item.order_id}</td>
+              <td>${item.name}</td>
+              <td class="cell-price">$${parseFloat(item.price).toFixed(2)}</td>
+              <td>${item.quantity}</td>
+              <td class="cell-price">$${(item.price * item.quantity).toFixed(2)}</td>
+            </tr>`;
+    });
+
+    html += `
+          </tbody>
+        </table>
+      </div>`;
+
+    itemsBody.innerHTML = html;
   }
 
   console.log('\u{1F332} Ember & Oak Admin loaded.');

@@ -737,6 +737,60 @@ body {
   font-size: 15px;
 }
 
+/* ===== Table (used by Order Items tab) ===== */
+.admin-table-wrap {
+  background: var(--white);
+  border-radius: var(--radius);
+  box-shadow: 0 4px 20px rgba(44, 24, 16, 0.08);
+  overflow-x: auto;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.admin-table thead {
+  background: var(--cream-dark);
+}
+
+.admin-table th {
+  text-align: left;
+  padding: 12px 16px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text-light);
+  white-space: nowrap;
+}
+
+.admin-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--cream-dark);
+  vertical-align: middle;
+}
+
+.admin-table tbody tr:hover {
+  background: rgba(200, 164, 92, 0.04);
+}
+
+.admin-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.admin-table .cell-id {
+  font-family: monospace;
+  font-size: 12px;
+  color: var(--text-light);
+}
+
+.admin-table .cell-price {
+  font-weight: 700;
+  color: var(--gold-dark);
+}
+
 /* ===== Toast ===== */
 .admin-toast {
   position: fixed;
