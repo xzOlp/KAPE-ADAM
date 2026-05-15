@@ -169,19 +169,17 @@
     ordersPollTimer = setInterval(async () => {
       const { orders } = await getOrders(userId);
       if (!orders) return;
-      let changed = false;
-      orders.forEach(order => {
-        const prev = lastOrdersStatus[order.id];
-        if (prev && prev !== order.status) {
-          changed = true;
-          if (currentTab === 'orders') {
-            renderOrders(userId);
-          } else {
+      if (currentTab === 'orders') {
+        renderOrders(userId);
+      } else {
+        orders.forEach(order => {
+          const prev = lastOrdersStatus[order.id];
+          if (prev && prev !== order.status) {
             showToast(toastEl, 'Order #' + order.id.slice(0, 8) + ' is now ' + order.status);
           }
-        }
-        lastOrdersStatus[order.id] = order.status;
-      });
+          lastOrdersStatus[order.id] = order.status;
+        });
+      }
     }, 5000);
   }
 
@@ -239,6 +237,7 @@
     }
 
     if (!orders || orders.length === 0) {
+      lastOrdersStatus = {};
       ordersCont.innerHTML = `
         <div class="cart-empty">
           <span class="cart-empty-icon">&#128230;</span>
@@ -249,6 +248,7 @@
       return;
     }
 
+    orders.forEach(o => { lastOrdersStatus[o.id] = o.status; });
     ordersCont.innerHTML = orders.map(order => {
       const items = order.items || [];
       const itemCount = items.length;
