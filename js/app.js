@@ -236,14 +236,28 @@
   }
 
   /* ---- Auth init ---- */
+  async function verifySession(userId) {
+    const { data: profile } = await getProfile(userId);
+    if (!profile) {
+      await signOut();
+      currentUser = null;
+      navUser.style.display = 'none';
+      setLoginMode(false);
+      showOverlay();
+      showToast(toastEl, 'Session expired — please sign in again');
+      return false;
+    }
+    navUserEmail.textContent = profile.email || 'User';
+    navUser.style.display = 'flex';
+    return true;
+  }
+
   async function initAuth() {
     const { session } = await getSession();
     if (session) {
       currentUser = session.user;
-      const { data: profile } = await getProfile(session.user.id);
-      navUserEmail.textContent = profile?.email || session.user.email;
-      navUser.style.display = 'flex';
-      dismissOverlay();
+      const ok = await verifySession(session.user.id);
+      if (ok) dismissOverlay();
     } else {
       setLoginMode(false);
       showOverlay();
@@ -253,10 +267,8 @@
   onAuthChange(async (event, session) => {
     if (event === 'SIGNED_IN' && session) {
       currentUser = session.user;
-      const { data: profile } = await getProfile(session.user.id);
-      navUserEmail.textContent = profile?.email || session.user.email;
-      navUser.style.display = 'flex';
-      dismissOverlay();
+      const ok = await verifySession(session.user.id);
+      if (ok) dismissOverlay();
     } else if (event === 'SIGNED_OUT') {
       currentUser = null;
       navUser.style.display = 'none';
