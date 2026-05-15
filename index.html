@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ember & Oak | Premium Coffee</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Lato:wght@300;400;700;900&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/nav.css" />
+  <link rel="stylesheet" href="css/hero.css" />
+  <link rel="stylesheet" href="css/sections.css" />
+  <link rel="stylesheet" href="css/menu.css" />
+  <link rel="stylesheet" href="css/cart.css" />
+  <link rel="stylesheet" href="css/login.css" />
+</head>
+<body>
+
+  <!-- ===== Login Overlay ===== -->
+  <div id="loginOverlay" class="login-overlay">
+    <div class="login-bg"></div>
+    <div class="login-card">
+      <div class="login-logo">E</div>
+      <h1 class="login-title" id="loginTitle">Welcome to Ember &amp; Oak</h1>
+      <p class="login-subtitle" id="loginSubtitle">Sign in to explore our menu</p>
+      <div class="login-error" id="loginError"></div>
+      <form class="login-form" onsubmit="return false;">
+        <div class="login-field">
+          <label for="loginEmail">Email</label>
+          <input type="email" id="loginEmail" placeholder="you@example.com" autocomplete="email" />
+        </div>
+        <div class="login-field">
+          <label for="loginPassword">Password</label>
+          <input type="password" id="loginPassword" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;" autocomplete="current-password" />
+        </div>
+        <button type="submit" class="login-btn" id="loginBtn">Sign In</button>
+      </form>
+      <a href="#" class="login-toggle" id="loginToggle">Don't have an account? <strong>Sign Up</strong></a>
+      <a href="#" class="login-skip" id="loginSkip">Guest? Skip to menu &rarr;</a>
+    </div>
+  </div>
+
+  <!-- ===== Navigation ===== -->
+  <nav id="navbar">
+    <div class="nav-logo" data-tab="home">
+      <div class="nav-logo-icon">E</div>
+      <span class="nav-logo-text">Ember &amp; <span>Oak</span></span>
+    </div>
+    <button class="nav-hamburger" id="hamburger" aria-label="Menu">&#9776;</button>
+    <ul class="nav-links" id="navLinks">
+      <li><button data-tab="home" class="active">Home</button></li>
+      <li><button data-tab="hot">Hot Beverages</button></li>
+      <li><button data-tab="cold">Cold Beverages</button></li>
+      <li><button data-tab="lattes">Lattes &amp; Specials</button></li>
+      <li><button data-tab="orders">My Orders</button></li>
+      <li>
+        <button class="nav-cart" data-tab="cart" aria-label="Cart">
+          <span>&#128722;</span>
+          <span class="cart-badge" id="cartCount">0</span>
+        </button>
+      </li>
+      <li class="nav-user" id="navUser" style="display:none">
+        <span class="nav-user-email" id="navUserEmail"></span>
+        <button class="nav-signout" id="navSignOut">Sign Out</button>
+      </li>
+    </ul>
+  </nav>
+
+  <!-- ===== Toast ===== -->
+  <div class="toast" id="toast"></div>
+
+  <!-- ===== Main Content ===== -->
+  <main>
+    <div class="tabs-container">
+
+      <!-- ============ HOME ============ -->
+      <section id="home" class="tab-content active">
+        <div class="hero">
+          <div class="hero-bg"></div>
+          <div class="hero-overlay"></div>
+          <div class="hero-content">
+            <div class="hero-badge">Est. 2024</div>
+            <h1>Crafted with <em>Passion</em>,<br />Served with <em>Warmth</em></h1>
+            <p>From ethically sourced beans to handcrafted beverages &mdash; every cup at Ember &amp; Oak tells a story of quality, care, and community.</p>
+            <button class="hero-cta" data-tab="lattes">Explore Our Menu &#8594;</button>
+          </div>
+        </div>
+        <div class="features">
+          <div class="feature-card">
+            <div class="feature-icon">&#127808;</div>
+            <h3>Ethically Sourced</h3>
+            <p>We partner with farms that practice sustainable agriculture and fair trade, ensuring every bean supports both people and the planet.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">&#129360;</div>
+            <h3>Handcrafted Daily</h3>
+            <p>Our baristas train for months to perfect espresso, latte design, and flavor balancing &mdash; all made fresh to order.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">&#127790;</div>
+            <h3>Warm Ambiance</h3>
+            <p>Natural materials, soft lighting, and the rich aroma of fresh coffee create a space where you can relax, work, or connect.</p>
+          </div>
+        </div>
+        <div class="section-header">
+          <h2>Current Offers</h2>
+          <p>Don&rsquo;t miss out on these limited-time savings</p>
+          <div class="accent-line"></div>
+        </div>
+        <div class="promos">
+          <div class="promo-card">
+            <img src="https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=600&h=400&fit=crop" alt="Cold Brew" loading="lazy" />
+            <div class="promo-overlay"></div>
+            <div class="promo-content">
+              <span class="promo-tag">Limited Time</span>
+              <h3>20% Off Cold Brews</h3>
+              <p>Beat the heat with our signature slow-steeped cold brew &mdash; now at a refreshing discount.</p>
+            </div>
+          </div>
+          <div class="promo-card">
+            <img src="https://images.unsplash.com/photo-1572442388796-11668a67e53d?w=600&h=400&fit=crop" alt="Lattes" loading="lazy" />
+            <div class="promo-overlay"></div>
+            <div class="promo-content">
+              <span class="promo-tag">BOGO</span>
+              <h3>Buy 2 Lattes, Get 1 Free</h3>
+              <p>Bring a friend (or two) and enjoy our handcrafted lattes on us.</p>
+            </div>
+          </div>
+          <div class="promo-card">
+            <img src="https://images.unsplash.com/photo-1536256263959-770b48d82b0a?w=600&h=400&fit=crop" alt="Matcha" loading="lazy" />
+            <div class="promo-overlay"></div>
+            <div class="promo-content">
+              <span class="promo-tag">New</span>
+              <h3>Try Our Matcha Collection</h3>
+              <p>Premium ceremonial-grade matcha meets oat milk perfection.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ HOT BEVERAGES ============ -->
+      <section id="hot" class="tab-content">
+        <div class="section-header">
+          <h2>Hot Beverages</h2>
+          <p>Warm your hands and your soul with our classic hot drinks</p>
+          <div class="accent-line"></div>
+        </div>
+        <div class="menu-grid" id="hotGrid"></div>
+      </section>
+
+      <!-- ============ COLD BEVERAGES ============ -->
+      <section id="cold" class="tab-content">
+        <div class="section-header">
+          <h2>Cold Beverages</h2>
+          <p>Chilled, refreshing, and crafted to cool you down</p>
+          <div class="accent-line"></div>
+        </div>
+        <div class="menu-grid" id="coldGrid"></div>
+      </section>
+
+      <!-- ============ LATTES & SPECIALS ============ -->
+      <section id="lattes" class="tab-content">
+        <div class="section-header">
+          <h2>Lattes &amp; Specials</h2>
+          <p>Our baristas&rsquo; favorite creations, from classic comforts to seasonal delights</p>
+          <div class="accent-line"></div>
+        </div>
+        <div class="menu-grid" id="lattesGrid"></div>
+      </section>
+
+      <!-- ============ CART ============ -->
+      <section id="cart" class="tab-content">
+        <div class="section-header">
+          <h2>Your Cart</h2>
+          <p>Review and adjust your order before checkout</p>
+          <div class="accent-line"></div>
+        </div>
+        <div class="cart-container" id="cartContainer"></div>
+      </section>
+
+      <!-- ============ MY ORDERS ============ -->
+      <section id="orders" class="tab-content">
+        <div class="section-header">
+          <h2>My Orders</h2>
+          <p>View your past orders and their status</p>
+          <div class="accent-line"></div>
+        </div>
+        <div class="orders-container" id="ordersContainer"></div>
+      </section>
+
+    </div>
+  </main>
+
+  <script src="js/supabase.js"></script>
+  <script src="js/shop.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
