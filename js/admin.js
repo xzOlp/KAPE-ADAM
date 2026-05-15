@@ -182,10 +182,8 @@
 
       card.querySelector('.user-btn-delete').addEventListener('click', async function () {
         if (!confirm('Delete user ' + user.email + ' and all their orders?')) return;
-        const { error: delOrders } = await supabase.from('orders').delete().eq('user_id', card.dataset.id);
-        if (delOrders) { toast('Error deleting orders: ' + delOrders.message); return; }
-        const { error: delUser } = await supabase.from('profiles').delete().eq('id', card.dataset.id);
-        if (delUser) { toast('Error deleting user: ' + delUser.message); return; }
+        const { error } = await supabase.auth.admin.deleteUser(card.dataset.id);
+        if (error) { toast('Delete failed: ' + error.message); return; }
         card.remove();
         usersCount.textContent = usersBody.children.length;
         toast('User and their orders deleted');
