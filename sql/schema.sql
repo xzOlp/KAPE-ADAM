@@ -68,6 +68,12 @@ CREATE POLICY "Users create orders"
   ON orders FOR INSERT
   WITH CHECK (auth.uid() = user_id);
 
+-- Users: update own orders (auto-status-advance)
+CREATE POLICY "Users update own orders"
+  ON orders FOR UPDATE
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
+
 -- Admins: read all orders
 CREATE POLICY "Admins read all orders"
   ON orders FOR SELECT

@@ -8,7 +8,7 @@
 
   const {
     signUp, signIn, signOut, getSession, getUser, getProfile, saveOrder, getOrders, onAuthChange,
-    subscribeOrders, unsubscribeOrders,
+    subscribeOrders, unsubscribeOrders, advanceOrderStatus, STATUS_STEPS,
   } = window.EmbOakSupabase;
 
   const navBar        = document.getElementById('navbar');
@@ -169,16 +169,27 @@
     ordersPollTimer = setInterval(async () => {
       const { orders } = await getOrders(userId);
       if (!orders) return;
+
+      for (const order of orders) {
+        const idx = STATUS_STEPS.indexOf(order.status);
+        if (idx >= 0 && idx < STATUS_STEPS.length - 1) {
+          await advanceOrderStatus(order.id, order.status);
+        }
+      }
+
       if (currentTab === 'orders') {
         renderOrders(userId);
       } else {
-        orders.forEach(order => {
-          const prev = lastOrdersStatus[order.id];
-          if (prev && prev !== order.status) {
-            showToast(toastEl, 'Order #' + order.id.slice(0, 8) + ' is now ' + order.status);
-          }
-          lastOrdersStatus[order.id] = order.status;
-        });
+        const { orders: fresh } = await getOrders(userId);
+        if (fresh) {
+          fresh.forEach(order => {
+            const prev = lastOrdersStatus[order.id];
+            if (prev && prev !== order.status) {
+              showToast(toastEl, 'Order #' + order.id.slice(0, 8) + ' is now ' + order.status);
+            }
+            lastOrdersStatus[order.id] = order.status;
+          });
+        }
       }
     }, 5000);
   }

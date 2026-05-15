@@ -136,6 +136,22 @@
     }
   }
 
+  const STATUS_STEPS = ['pending', 'confirmed', 'preparing', 'ready', 'completed'];
+
+  async function advanceOrderStatus(orderId, currentStatus) {
+    const idx = STATUS_STEPS.indexOf(currentStatus);
+    if (idx < 0 || idx >= STATUS_STEPS.length - 1) return { advanced: false };
+    const nextStatus = STATUS_STEPS[idx + 1];
+    const { data, error } = await supabase
+      .from('orders')
+      .update({ status: nextStatus })
+      .eq('id', orderId)
+      .eq('status', currentStatus)
+      .select();
+    if (error) return { advanced: false, error };
+    return { advanced: data && data.length > 0, nextStatus };
+  }
+
   window.EmbOakSupabase = {
     supabase,
     signUp,
@@ -151,5 +167,7 @@
     getOrders,
     subscribeOrders,
     unsubscribeOrders,
+    advanceOrderStatus,
+    STATUS_STEPS,
   };
 })();

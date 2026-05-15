@@ -290,7 +290,7 @@
       if (sfContainer && window.EmbOak && window.EmbOak.renderStatusFlow) {
         const statusChangeHandler = async function (newStatus) {
           if (newStatus === order.status) return;
-          const { error } = await supabase.from('orders').update({ status: newStatus }).eq('id', card.dataset.id);
+          const { error } = await supabase.from('orders').update({ status: newStatus }).eq('id', card.dataset.id).eq('status', order.status);
           if (error) { toast('Error: ' + error.message); return; }
           order.status = newStatus;
           if (sfContainer && window.EmbOak) {
