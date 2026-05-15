@@ -8,6 +8,7 @@
 
   const {
     signUp, signIn, signOut, getSession, getUser, getProfile, saveOrder, getOrders, onAuthChange,
+    subscribeOrders, unsubscribeOrders,
   } = window.EmbOakSupabase;
 
   const navBar        = document.getElementById('navbar');
@@ -157,6 +158,7 @@
   }
 
   async function handleSignOut() {
+    unsubscribeOrders();
     await signOut();
     currentUser = null;
     navUser.style.display = 'none';
@@ -271,6 +273,16 @@
     currentUser = user;
     navUserEmail.textContent = user.email || 'User';
     navUser.style.display = 'flex';
+
+    subscribeOrders(user.id, function onOrderUpdate(updatedOrder) {
+      if (currentTab === 'orders') {
+        renderOrders(currentUser.id);
+      }
+      if (updatedOrder && updatedOrder.status !== 'pending') {
+        showToast(toastEl, 'Order #' + updatedOrder.id.slice(0, 8) + ' is now ' + updatedOrder.status);
+      }
+    });
+
     return true;
   }
 

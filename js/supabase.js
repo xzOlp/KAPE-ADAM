@@ -104,6 +104,38 @@
     return { orders: orders || [], error: null };
   }
 
+  let ordersChannel = null;
+
+  function subscribeOrders(userId, onUpdate) {
+    unsubscribeOrders();
+    ordersChannel = supabase
+      .channel('orders-realtime')
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'orders',
+        filter: `user_id=eq.${userId}`,
+      }, (payload) => {
+        if (onUpdate) onUpdate(payload.new);
+      })
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'orders',
+        filter: `user_id=eq.${userId}`,
+      }, (payload) => {
+        if (onUpdate) onUpdate(payload.new);
+      })
+      .subscribe();
+  }
+
+  function unsubscribeOrders() {
+    if (ordersChannel) {
+      supabase.removeChannel(ordersChannel);
+      ordersChannel = null;
+    }
+  }
+
   window.EmbOakSupabase = {
     supabase,
     signUp,
@@ -117,5 +149,7 @@
     updateProfile,
     saveOrder,
     getOrders,
+    subscribeOrders,
+    unsubscribeOrders,
   };
 })();

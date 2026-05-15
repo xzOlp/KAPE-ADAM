@@ -98,7 +98,10 @@ CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION handle_new_user();
 
--- 4. ADMIN DELETE USER (deletes orders, profile, and auth user)
+-- 4. ENABLE REAL-TIME FOR ORDERS
+ALTER PUBLICATION supabase_realtime ADD TABLE orders;
+
+-- 5. ADMIN DELETE USER (deletes orders, profile, and auth user)
 CREATE OR REPLACE FUNCTION admin_delete_user(target_id UUID)
 RETURNS void
 LANGUAGE plpgsql
