@@ -630,6 +630,12 @@ body {
   white-space: nowrap;
 }
 
+.order-card-flow {
+  padding: 12px 24px 8px;
+  background: var(--white);
+  border-top: 1px solid var(--cream-dark);
+}
+
 .order-card-footer {
   display: flex;
   justify-content: flex-end;

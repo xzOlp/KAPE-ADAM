@@ -150,8 +150,73 @@
     setTimeout(() => ripple.remove(), 600);
   }
 
+  function renderStatusFlow(container, currentStatus, options) {
+    if (!container) return;
+    const steps = ['pending', 'confirmed', 'preparing', 'ready', 'completed'];
+    const labels = ['Pending', 'Confirmed', 'Preparing', 'Ready', 'Completed'];
+    const currentIdx = steps.indexOf(currentStatus);
+    const clickable = options && options.onStatusChange;
+    const showMeta = options && options.meta;
+    const isCancelled = currentStatus === 'cancelled';
+
+    let html = '';
+    if (isCancelled) {
+      html = '<div class="sf-flow" style="opacity:0.6">';
+      steps.forEach((step, i) => {
+        const state = i < steps.length - 1 ? 'done' : 'cancelled';
+        html += `<div class="sf-item ${state}" data-status="${step}">`;
+        html += '<div class="sf-row">';
+        html += `<div class="sf-circle ${state}">${i < steps.length - 1 ? '&#10003;' : '&#10007;'}</div>`;
+        if (i < steps.length - 1) {
+          const connState = i < steps.length - 2 ? 'done' : 'cancelled';
+          html += `<div class="sf-connector ${connState}"></div>`;
+        }
+        html += '</div>';
+        html += `<div class="sf-label">${labels[i]}</div>`;
+        if (showMeta && options.meta[i]) {
+          html += `<div class="sf-meta">${options.meta[i]}</div>`;
+        }
+        html += '</div>';
+      });
+      html += '</div>';
+      html += '<div style="text-align:center;font-size:11px;font-weight:700;color:#c0392b;text-transform:uppercase;letter-spacing:1px;padding:4px 0 8px">Order Cancelled</div>';
+    } else {
+      html = '<div class="sf-flow">';
+      steps.forEach((step, i) => {
+        const state = i < currentIdx ? 'done' : i === currentIdx ? 'current' : 'future';
+        const circleContent = state === 'done' ? '&#10003;' : (state === 'current' ? '' : '');
+        html += `<div class="sf-item ${state}" data-status="${step}">`;
+        html += '<div class="sf-row">';
+        html += `<div class="sf-circle ${state}">${circleContent}</div>`;
+        if (i < steps.length - 1) {
+          html += `<div class="sf-connector ${state}"></div>`;
+        }
+        html += '</div>';
+        html += `<div class="sf-label">${labels[i]}</div>`;
+        if (showMeta && options.meta[i]) {
+          html += `<div class="sf-meta">${options.meta[i]}</div>`;
+        }
+        html += '</div>';
+      });
+      html += '</div>';
+    }
+
+    container.innerHTML = html;
+
+    if (clickable && !isCancelled) {
+      container.querySelectorAll('.sf-item').forEach(el => {
+        const status = el.dataset.status;
+        el.style.cursor = 'pointer';
+        el.addEventListener('click', function (e) {
+          e.stopPropagation();
+          options.onStatusChange(status);
+        });
+      });
+    }
+  }
+
   window.EmbOak = {
     menuData, getCart, addToCart, removeFromCart, updateQuantity, getCartCount, clearCart,
-    renderMenu, renderCart, showToast, createRipple,
+    renderMenu, renderCart, showToast, createRipple, renderStatusFlow,
   };
 })();

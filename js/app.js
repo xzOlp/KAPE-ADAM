@@ -3,7 +3,7 @@
 
   const {
     menuData, getCart, addToCart, removeFromCart, updateQuantity, getCartCount, clearCart,
-    renderMenu, renderCart, showToast, createRipple,
+    renderMenu, renderCart, showToast, createRipple, renderStatusFlow,
   } = window.EmbOak;
 
   const {
@@ -221,29 +221,42 @@
     }
 
     ordersCont.innerHTML = orders.map(order => {
-      const itemsHtml = (order.items || []).map(item => `
-        <div class="order-item">
-          <span class="order-item-name">${item.quantity}x ${item.name}</span>
-          <span class="order-item-price">$${(item.price * item.quantity).toFixed(2)}</span>
-        </div>`).join('');
-
+      const items = order.items || [];
+      const itemCount = items.length;
+      const totalQty = items.reduce((s, i) => s + i.quantity, 0);
       const date = new Date(order.created_at).toLocaleDateString('en-US', {
         year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
       });
 
       return `
-        <div class="order-card">
+        <div class="order-card" data-id="${order.id}">
           <div class="order-card-header">
             <div>
               <span class="order-id">Order #${order.id.slice(0, 8)}</span>
               <span class="order-date">${date}</span>
             </div>
-            <span class="order-status ${order.status}">${order.status}</span>
+            <span class="order-card-total-label">Total: $${parseFloat(order.total).toFixed(2)}</span>
           </div>
-          <div class="order-card-items">${itemsHtml}</div>
-          <div class="order-card-total">Total: $${parseFloat(order.total).toFixed(2)}</div>
+          <div class="sf-placeholder-${order.id.replace(/-/g, '')}"></div>
+          <div class="order-card-items">${items.map(item => `
+            <div class="order-item">
+              <span class="order-item-name">${item.quantity}x ${item.name}</span>
+              <span class="order-item-price">$${(item.price * item.quantity).toFixed(2)}</span>
+            </div>`).join('')}
+          </div>
         </div>`;
     }).join('');
+
+    orders.forEach(order => {
+      const placeholder = document.querySelector(`.sf-placeholder-${order.id.replace(/-/g, '')}`);
+      if (placeholder) {
+        const items = order.items || [];
+        const totalQty = items.reduce((s, i) => s + i.quantity, 0);
+        renderStatusFlow(placeholder, order.status, {
+          meta: ['', `$${parseFloat(order.total).toFixed(2)} ${totalQty} item${totalQty !== 1 ? 's' : ''}`, '', '', ''],
+        });
+      }
+    });
   }
 
   /* ---- Auth init ---- */

@@ -245,6 +245,8 @@
           <span class="order-item-line-total">$${(item.price * item.quantity).toFixed(2)}</span>
         </div>`).join('');
 
+      const sfId = 'sf-' + order.id.replace(/-/g, '');
+
       card.innerHTML = `
         <div class="order-card-top">
           <div class="order-card-left">
@@ -259,11 +261,11 @@
             </div>
           </div>
           <div class="order-card-right">
-            <span class="order-card-status ${order.status}">${order.status}</span>
             <span class="order-card-date">${date}</span>
             <span class="order-card-expand-icon">&#9660;</span>
           </div>
         </div>
+        <div class="order-card-flow" id="${sfId}"></div>
         <div class="order-card-expanded">
           <div class="order-card-expanded-header">
             <span>Qty</span>
@@ -273,32 +275,37 @@
           ${itemsHtml}
         </div>
         <div class="order-card-footer">
-          <select class="order-status-select">
-            <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>Pending</option>
-            <option value="confirmed" ${order.status === 'confirmed' ? 'selected' : ''}>Confirmed</option>
-            <option value="preparing" ${order.status === 'preparing' ? 'selected' : ''}>Preparing</option>
-            <option value="ready" ${order.status === 'ready' ? 'selected' : ''}>Ready</option>
-            <option value="completed" ${order.status === 'completed' ? 'selected' : ''}>Completed</option>
-            <option value="cancelled" ${order.status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
-          </select>
           <button class="admin-btn-delete order-btn-delete">Delete Order</button>
         </div>`;
 
       ordersBody.appendChild(card);
+
+      const totalQty = items.reduce((s, i) => s + i.quantity, 0);
+      const sfContainer = document.getElementById(sfId);
+      if (sfContainer && window.EmbOak && window.EmbOak.renderStatusFlow) {
+        const statusChangeHandler = async function (newStatus) {
+          if (newStatus === order.status) return;
+          const { error } = await supabase.from('orders').update({ status: newStatus }).eq('id', card.dataset.id);
+          if (error) { toast('Error: ' + error.message); return; }
+          order.status = newStatus;
+          if (sfContainer && window.EmbOak) {
+            window.EmbOak.renderStatusFlow(sfContainer, newStatus, {
+              onStatusChange: statusChangeHandler,
+            });
+          }
+          toast('Status updated to ' + newStatus);
+        };
+        window.EmbOak.renderStatusFlow(sfContainer, order.status, {
+          onStatusChange: statusChangeHandler,
+          meta: ['', `$${parseFloat(order.total).toFixed(2)} ${totalQty} item${totalQty !== 1 ? 's' : ''}`, '', '', ''],
+        });
+      }
 
       let expanded = false;
       card.querySelector('.order-card-top').addEventListener('click', function () {
         expanded = !expanded;
         card.querySelector('.order-card-expanded').classList.toggle('open', expanded);
         card.querySelector('.order-card-expand-icon').classList.toggle('open', expanded);
-      });
-
-      card.querySelector('.order-status-select').addEventListener('change', async function () {
-        const { error } = await supabase.from('orders').update({ status: this.value }).eq('id', card.dataset.id);
-        if (error) { toast('Error: ' + error.message); return; }
-        card.querySelector('.order-card-status').textContent = this.value;
-        card.querySelector('.order-card-status').className = 'order-card-status ' + this.value;
-        toast('Status updated to ' + this.value);
       });
 
       card.querySelector('.order-btn-delete').addEventListener('click', async function () {
