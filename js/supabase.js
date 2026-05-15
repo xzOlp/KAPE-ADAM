@@ -33,6 +33,11 @@
     return { session: data.session, error };
   }
 
+  async function refreshSession() {
+    const { data, error } = await supabase.auth.refreshSession();
+    return { session: data.session, error };
+  }
+
   async function getProfile(userId) {
     const { data, error } = await supabase
       .from('profiles')
@@ -101,6 +106,7 @@
     signOut,
     onAuthChange,
     getSession,
+    refreshSession,
     getProfile,
     updateProfile,
     saveOrder,

@@ -7,7 +7,7 @@
   } = window.EmbOak;
 
   const {
-    signUp, signIn, signOut, getSession, getProfile, saveOrder, getOrders, onAuthChange,
+    signUp, signIn, signOut, getSession, refreshSession, getProfile, saveOrder, getOrders, onAuthChange,
   } = window.EmbOakSupabase;
 
   const navBar        = document.getElementById('navbar');
@@ -237,6 +237,16 @@
 
   /* ---- Auth init ---- */
   async function verifySession(userId) {
+    const { session: refreshed } = await refreshSession();
+    if (!refreshed) {
+      currentUser = null;
+      navUser.style.display = 'none';
+      setLoginMode(false);
+      showOverlay();
+      showToast(toastEl, 'Session expired — please sign in again');
+      return false;
+    }
+    currentUser = refreshed.user;
     const { data: profile } = await getProfile(userId);
     if (!profile) {
       await signOut();
