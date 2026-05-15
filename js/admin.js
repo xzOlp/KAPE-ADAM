@@ -120,66 +120,72 @@
     const { data } = await supabase.from('profiles').select('id, email, name, created_at').order('created_at', { ascending: false });
     usersBody.innerHTML = '';
     if (!data || data.length === 0) {
-      usersBody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:32px;color:var(--text-light)">No users found</td></tr>';
+      usersBody.innerHTML = '<div class="empty-state"><p>No users found</p></div>';
       usersCount.textContent = '0';
       return;
     }
     usersCount.textContent = data.length;
-    data.forEach(user => {
-      const tr = document.createElement('tr');
-      tr.dataset.id = user.id;
-      tr.innerHTML = `
-        <td class="cell-email">${user.email || '—'}</td>
-        <td><span class="user-name-display">${user.name || ''}</span></td>
-        <td style="color:var(--text-light);font-size:13px">${new Date(user.created_at).toLocaleDateString()}</td>
-        <td>
-          <button class="admin-btn-edit user-edit">Edit</button>
-          <button class="admin-btn-delete user-delete">Delete</button>
-        </td>`;
-      usersBody.appendChild(tr);
-    });
 
-    usersBody.querySelectorAll('.user-edit').forEach(btn => {
-      btn.addEventListener('click', function () {
-        const tr = this.closest('tr');
-        const display = tr.querySelector('.user-name-display');
-        const current = display.textContent;
-        display.innerHTML = `<input class="inline-input" value="${current}" />`;
+    data.forEach(user => {
+      const card = document.createElement('div');
+      card.className = 'user-card';
+      card.dataset.id = user.id;
+
+      const initial = (user.email || '?')[0].toUpperCase();
+      const date = new Date(user.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+      card.innerHTML = `
+        <div class="user-avatar">${initial}</div>
+        <div class="user-info">
+          <div class="user-email">${user.email || '—'}</div>
+          <div class="user-name"><span class="user-name-display">${user.name || 'No name set'}</span></div>
+          <div class="user-date">Joined ${date}</div>
+        </div>
+        <div class="user-actions">
+          <button class="user-btn-edit">Edit</button>
+          <button class="user-btn-delete">Delete</button>
+        </div>`;
+
+      usersBody.appendChild(card);
+
+      card.querySelector('.user-btn-edit').addEventListener('click', function () {
+        const display = card.querySelector('.user-name-display');
+        const current = display.textContent === 'No name set' ? '' : display.textContent;
+        display.innerHTML = `<input class="user-name-input" value="${current}" />`;
         this.textContent = 'Save';
-        this.className = 'admin-btn-save user-edit';
+        this.className = 'user-btn-save';
+
         const cancel = document.createElement('button');
-        cancel.className = 'admin-btn-cancel';
+        cancel.className = 'user-btn-cancel';
         cancel.textContent = 'Cancel';
-        this.parentNode.insertBefore(cancel, this.nextSibling);
+        card.querySelector('.user-actions').appendChild(cancel);
+
         cancel.addEventListener('click', function () {
-          display.innerHTML = current;
-          btn.textContent = 'Edit';
-          btn.className = 'admin-btn-edit user-edit';
+          display.innerHTML = current || 'No name set';
+          card.querySelector('.user-btn-save').textContent = 'Edit';
+          card.querySelector('.user-btn-save').className = 'user-btn-edit';
           cancel.remove();
         });
-        this.removeEventListener('click', this._handler);
+
         this.addEventListener('click', async function saveHandler() {
-          const input = display.querySelector('.inline-input');
+          const input = display.querySelector('.user-name-input');
           const newName = input.value.trim();
-          const { error } = await supabase.from('profiles').update({ name: newName }).eq('id', tr.dataset.id);
+          const { error } = await supabase.from('profiles').update({ name: newName }).eq('id', card.dataset.id);
           if (error) { toast('Error: ' + error.message); return; }
-          display.innerHTML = newName || '';
-          btn.textContent = 'Edit';
-          btn.className = 'admin-btn-edit user-edit';
+          display.innerHTML = newName || 'No name set';
+          card.querySelector('.user-btn-save').textContent = 'Edit';
+          card.querySelector('.user-btn-save').className = 'user-btn-edit';
           cancel.remove();
           toast('User updated');
-        });
+        }, { once: true });
       });
-    });
 
-    usersBody.querySelectorAll('.user-delete').forEach(btn => {
-      btn.addEventListener('click', async function () {
-        const tr = this.closest('tr');
-        if (!confirm('Delete user ' + (tr.querySelector('.cell-email').textContent) + '? This will also delete their orders.')) return;
-        const { error } = await supabase.from('profiles').delete().eq('id', tr.dataset.id);
+      card.querySelector('.user-btn-delete').addEventListener('click', async function () {
+        if (!confirm('Delete user ' + user.email + '? This will also delete their orders.')) return;
+        const { error } = await supabase.from('profiles').delete().eq('id', card.dataset.id);
         if (error) { toast('Error: ' + error.message); return; }
-        tr.remove();
-        usersCount.textContent = usersBody.querySelectorAll('tr').length;
+        card.remove();
+        usersCount.textContent = usersBody.children.length;
         toast('User deleted');
       });
     });
@@ -190,47 +196,89 @@
     const { data } = await supabase.from('orders').select('*').order('created_at', { ascending: false });
     ordersBody.innerHTML = '';
     if (!data || data.length === 0) {
-      ordersBody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:32px;color:var(--text-light)">No orders found</td></tr>';
+      ordersBody.innerHTML = '<div class="empty-state"><p>No orders found</p></div>';
       ordersCount.textContent = '0';
       return;
     }
 
     ordersCount.textContent = data.length;
+
     data.forEach(order => {
-      const itemsArr = order.items || [];
-      const itemCount = itemsArr.length;
-      const tr = document.createElement('tr');
-      tr.dataset.id = order.id;
+      const items = order.items || [];
+      const itemCount = items.length;
       const date = new Date(order.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-      tr.innerHTML = `
-        <td class="cell-id">${order.id.slice(0, 8)}</td>
-        <td class="cell-email">${getEmail(order.user_id)}</td>
-        <td>${itemCount}</td>
-        <td class="cell-price">$${parseFloat(order.subtotal).toFixed(2)}</td>
-        <td class="cell-price">$${parseFloat(order.tax).toFixed(2)}</td>
-        <td class="cell-price">$${parseFloat(order.total).toFixed(2)}</td>
-        <td class="cell-status">
-          <select class="status-select order-status-sel">
+
+      const card = document.createElement('div');
+      card.className = 'order-admin-card';
+      card.dataset.id = order.id;
+
+      const itemsHtml = items.map(item => `
+        <div class="order-expanded-item">
+          <div class="order-expanded-item-left">
+            <span class="order-item-qty">${item.quantity}</span>
+            <span class="order-item-name">${item.name}</span>
+          </div>
+          <span class="order-item-line-total">$${(item.price * item.quantity).toFixed(2)}</span>
+        </div>`).join('');
+
+      card.innerHTML = `
+        <div class="order-card-top">
+          <div class="order-card-left">
+            <span class="order-card-id">#${order.id.slice(0, 8)}</span>
+            <span class="order-card-user">${getEmail(order.user_id)}</span>
+            <span class="order-card-items-count">${itemCount} item${itemCount !== 1 ? 's' : ''}</span>
+          </div>
+          <div class="order-card-center">
+            <div class="order-card-amounts">
+              <div class="order-card-total">$${parseFloat(order.total).toFixed(2)}</div>
+              <div class="order-card-detail">$${parseFloat(order.subtotal).toFixed(2)} + $${parseFloat(order.tax).toFixed(2)} tax</div>
+            </div>
+          </div>
+          <div class="order-card-right">
+            <span class="order-card-status ${order.status}">${order.status}</span>
+            <span class="order-card-date">${date}</span>
+            <span class="order-card-expand-icon">&#9660;</span>
+          </div>
+        </div>
+        <div class="order-card-expanded">
+          <div class="order-card-expanded-header">
+            <span>Qty</span>
+            <span>Item</span>
+            <span>Total</span>
+          </div>
+          ${itemsHtml}
+        </div>
+        <div class="order-card-footer">
+          <select class="order-status-select">
             <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>Pending</option>
             <option value="completed" ${order.status === 'completed' ? 'selected' : ''}>Completed</option>
           </select>
-        </td>
-        <td style="color:var(--text-light);font-size:12px">${date}</td>
-        <td><button class="admin-btn-delete order-delete">Delete</button></td>`;
-      ordersBody.appendChild(tr);
+          <button class="admin-btn-delete order-btn-delete">Delete Order</button>
+        </div>`;
 
-      tr.querySelector('.order-status-sel').addEventListener('change', async function () {
-        const { error } = await supabase.from('orders').update({ status: this.value }).eq('id', tr.dataset.id);
+      ordersBody.appendChild(card);
+
+      let expanded = false;
+      card.querySelector('.order-card-top').addEventListener('click', function () {
+        expanded = !expanded;
+        card.querySelector('.order-card-expanded').classList.toggle('open', expanded);
+        card.querySelector('.order-card-expand-icon').classList.toggle('open', expanded);
+      });
+
+      card.querySelector('.order-status-select').addEventListener('change', async function () {
+        const { error } = await supabase.from('orders').update({ status: this.value }).eq('id', card.dataset.id);
         if (error) { toast('Error: ' + error.message); return; }
+        card.querySelector('.order-card-status').textContent = this.value;
+        card.querySelector('.order-card-status').className = 'order-card-status ' + this.value;
         toast('Status updated to ' + this.value);
       });
 
-      tr.querySelector('.order-delete').addEventListener('click', async function () {
-        if (!confirm('Delete order ' + tr.dataset.id.slice(0, 8) + '?')) return;
-        const { error } = await supabase.from('orders').delete().eq('id', tr.dataset.id);
+      card.querySelector('.order-btn-delete').addEventListener('click', async function () {
+        if (!confirm('Delete order #' + order.id.slice(0, 8) + '?')) return;
+        const { error } = await supabase.from('orders').delete().eq('id', card.dataset.id);
         if (error) { toast('Error: ' + error.message); return; }
-        tr.remove();
-        ordersCount.textContent = ordersBody.querySelectorAll('tr').length;
+        card.remove();
+        ordersCount.textContent = ordersBody.children.length;
         toast('Order deleted');
       });
     });
@@ -238,40 +286,52 @@
 
   /* ======= ORDER ITEMS ======= */
   async function loadItems() {
-    const { data } = await supabase.from('orders').select('id, items').order('created_at', { ascending: false });
+    const { data } = await supabase.from('orders').select('id, items, created_at').order('created_at', { ascending: false });
     itemsBody.innerHTML = '';
     if (!data || data.length === 0) {
-      itemsBody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:32px;color:var(--text-light)">No items found</td></tr>';
+      itemsBody.innerHTML = '<div class="empty-state"><p>No items found</p></div>';
       itemsCount.textContent = '0';
       return;
     }
 
-    const allItems = [];
+    let totalItems = 0;
+    const groupsHtml = [];
+
     data.forEach(order => {
-      if (order.items && Array.isArray(order.items)) {
-        order.items.forEach(item => {
-          allItems.push({ ...item, order_id: order.id });
-        });
-      }
+      const items = order.items || [];
+      if (items.length === 0) return;
+      totalItems += items.length;
+
+      const rowsHtml = items.map(item => `
+        <tr>
+          <td>${item.name}</td>
+          <td class="cell-price">$${parseFloat(item.price).toFixed(2)}</td>
+          <td>${item.quantity}</td>
+          <td class="cell-price">$${(item.price * item.quantity).toFixed(2)}</td>
+        </tr>`).join('');
+
+      groupsHtml.push(`
+        <div class="items-order-group">
+          <div class="items-order-header">
+            Order <strong>#${order.id.slice(0, 8)}</strong>
+            <span style="margin-left:auto;font-family:var(--font-sans);font-weight:400">${items.length} item${items.length !== 1 ? 's' : ''}</span>
+          </div>
+          <table class="items-table">
+            <thead>
+              <tr>
+                <th>Item</th>
+                <th>Price</th>
+                <th>Qty</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody>${rowsHtml}</tbody>
+          </table>
+        </div>`);
     });
 
-    itemsCount.textContent = allItems.length;
-
-    if (allItems.length === 0) {
-      itemsBody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:32px;color:var(--text-light)">No items found</td></tr>';
-      return;
-    }
-
-    allItems.forEach(item => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td class="cell-id">${item.order_id.slice(0, 8)}</td>
-        <td>${item.name}</td>
-        <td class="cell-price">$${parseFloat(item.price).toFixed(2)}</td>
-        <td>${item.quantity}</td>
-        <td class="cell-price">$${(item.price * item.quantity).toFixed(2)}</td>`;
-      itemsBody.appendChild(tr);
-    });
+    itemsCount.textContent = totalItems;
+    itemsBody.innerHTML = groupsHtml.join('') || '<div class="empty-state"><p>No items found</p></div>';
   }
 
   console.log('\u{1F332} Ember & Oak Admin loaded.');
