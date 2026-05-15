@@ -68,7 +68,12 @@
     loadData();
   }
 
+  function clearAllAutoTimers() {
+    document.querySelectorAll('.order-admin-card').forEach(c => clearInterval(c._autoTimer));
+  }
+
   function lock() {
+    clearAllAutoTimers();
     sessionStorage.removeItem('admin_unlocked');
     document.getElementById('adminDashboard').style.display = 'none';
     document.getElementById('adminGate').style.display = 'flex';
@@ -293,12 +298,24 @@
               onStatusChange: statusChangeHandler,
             });
           }
+          if (newStatus === 'completed' || newStatus === 'cancelled') {
+            clearInterval(card._autoTimer);
+          }
           toast('Status updated to ' + newStatus);
         };
         window.EmbOak.renderStatusFlow(sfContainer, order.status, {
           onStatusChange: statusChangeHandler,
           meta: ['', `$${parseFloat(order.total).toFixed(2)} ${totalQty} item${totalQty !== 1 ? 's' : ''}`, '', '', ''],
         });
+
+        const steps = ['pending', 'confirmed', 'preparing', 'ready', 'completed'];
+        if (steps.indexOf(order.status) >= 0 && steps.indexOf(order.status) < steps.length - 1) {
+          card._autoTimer = setInterval(async function () {
+            const idx = steps.indexOf(order.status);
+            if (idx < 0 || idx >= steps.length - 1) { clearInterval(card._autoTimer); return; }
+            await statusChangeHandler(steps[idx + 1]);
+          }, 5000);
+        }
       }
 
       let expanded = false;
@@ -310,6 +327,7 @@
 
       card.querySelector('.order-btn-delete').addEventListener('click', async function () {
         if (!confirm('Delete order #' + order.id.slice(0, 8) + '?')) return;
+        clearInterval(card._autoTimer);
         const { error } = await supabase.from('orders').delete().eq('id', card.dataset.id);
         if (error) { toast('Error: ' + error.message); return; }
         card.remove();
