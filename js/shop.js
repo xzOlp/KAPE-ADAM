@@ -183,7 +183,8 @@
     } else {
       html = '<div class="sf-flow">';
       steps.forEach((step, i) => {
-        const state = i < currentIdx ? 'done' : i === currentIdx ? 'current' : 'future';
+        const isTerminal = currentIdx === steps.length - 1;
+        const state = i < currentIdx ? 'done' : i === currentIdx ? (isTerminal ? 'done' : 'current') : 'future';
         const circleContent = state === 'done' ? '&#10003;' : (state === 'current' ? '' : '');
         html += `<div class="sf-item ${state}" data-status="${step}">`;
         html += '<div class="sf-row">';
