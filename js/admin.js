@@ -2,10 +2,12 @@
   'use strict';
 
   const SUPABASE_URL = 'https://uqvayowsuyrkqcdmdfnw.supabase.co';
-  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVxdmF5b3dzdXlya3FjZG1kZm53Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4MDA1NzksImV4cCI6MjA5NDM3NjU3OX0.Jfx7QM8yCD9TBw0KFl91jLFGUWIU17F5R7z2bAAW6Lk';
+  const SUPABASE_SERVICE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVxdmF5b3dzdXlya3FjZG1kZm53Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3ODgwMDU3OSwiZXhwIjoyMDk0Mzc2NTc5fQ.L2S-w4ujca80A63wfo9-33_fzBfIr82VzA4YjmDwWxk';
 
   const { createClient } = window.supabase;
-  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
+    auth: { persistSession: false },
+  });
 
   const usersBody  = document.getElementById('usersBody');
   const ordersBody = document.getElementById('ordersBody');
@@ -77,28 +79,15 @@
   const ADMIN_PASSWORD = 'admin123';
 
   /* ---- Gate ---- */
-  async function tryAdminSession() {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) return false;
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', session.user.id)
-      .maybeSingle();
-    return profile && profile.role === 'admin';
-  }
-
   async function initGate() {
     if (sessionStorage.getItem('admin_unlocked')) { unlock(); return; }
-    if (await tryAdminSession()) { unlock(); return; }
 
     const btn = document.getElementById('gateBtn');
     const pass = document.getElementById('gatePassword');
 
-    btn.addEventListener('click', async function () {
-      if (pass.value === ADMIN_PASSWORD) { unlock(); return; }
-      if (await tryAdminSession()) { unlock(); return; }
-      showAdminError('Incorrect password');
+    btn.addEventListener('click', function () {
+      if (pass.value === ADMIN_PASSWORD) { unlock(); }
+      else { showAdminError('Incorrect password'); }
     });
 
     pass.addEventListener('keydown', function (e) {
