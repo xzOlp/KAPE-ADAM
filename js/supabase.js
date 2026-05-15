@@ -48,7 +48,7 @@
       .from('profiles')
       .select('*')
       .eq('id', userId)
-      .single();
+      .maybeSingle();
     return { data, error };
   }
 
@@ -79,9 +79,9 @@
       .insert({
         user_id: userId,
         items: items,
-        subtotal: subtotal.toFixed(2),
-        tax: tax.toFixed(2),
-        total: total.toFixed(2),
+        subtotal: Number(subtotal.toFixed(2)),
+        tax: Number(tax.toFixed(2)),
+        total: Number(total.toFixed(2)),
         status: 'pending',
       })
       .select()

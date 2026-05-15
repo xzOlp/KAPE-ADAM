@@ -177,7 +177,16 @@
       showToast(toastEl, 'Your cart is empty');
       return;
     }
+    const checkoutBtn = document.querySelector('.cart-checkout');
+    if (checkoutBtn) {
+      checkoutBtn.disabled = true;
+      checkoutBtn.textContent = 'Placing order...';
+    }
     const result = await saveOrder(currentUser.id, cart);
+    if (checkoutBtn) {
+      checkoutBtn.disabled = false;
+      checkoutBtn.textContent = 'Proceed to Checkout';
+    }
     if (result.error) {
       showToast(toastEl, 'Checkout failed: ' + result.error.message);
       return;
@@ -278,15 +287,22 @@
     }
   }
 
+  let authChanging = false;
   onAuthChange(async (event, session) => {
-    if (event === 'SIGNED_IN' && session) {
-      currentUser = session.user;
-      const ok = await verifySession();
-      if (ok) dismissOverlay();
-    } else if (event === 'SIGNED_OUT') {
-      currentUser = null;
-      navUser.style.display = 'none';
-      showOverlay();
+    if (authChanging) return;
+    authChanging = true;
+    try {
+      if (event === 'SIGNED_IN' && session) {
+        currentUser = session.user;
+        const ok = await verifySession();
+        if (ok) dismissOverlay();
+      } else if (event === 'SIGNED_OUT') {
+        currentUser = null;
+        navUser.style.display = 'none';
+        showOverlay();
+      }
+    } finally {
+      authChanging = false;
     }
   });
 
@@ -355,12 +371,10 @@
   window.addEventListener('scroll', handleNavScroll, { passive: true });
 
   loginBtn.addEventListener('click', handleLogin);
-  loginToggle.addEventListener('click', function (e) {
-    e.preventDefault();
+  loginToggle.addEventListener('click', function () {
     setLoginMode(!isSignUp);
   });
-  loginSkip.addEventListener('click', function (e) {
-    e.preventDefault();
+  loginSkip.addEventListener('click', function () {
     if (!currentUser) {
       showToast(toastEl, 'Browse as guest — sign up anytime to save orders');
     }

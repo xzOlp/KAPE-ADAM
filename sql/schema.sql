@@ -97,3 +97,16 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION handle_new_user();
+
+-- 4. ADMIN DELETE USER (deletes orders, profile, and auth user)
+CREATE OR REPLACE FUNCTION admin_delete_user(target_id UUID)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  DELETE FROM public.orders WHERE user_id = target_id;
+  DELETE FROM public.profiles WHERE id = target_id;
+  DELETE FROM auth.users WHERE id = target_id;
+END;
+$$;

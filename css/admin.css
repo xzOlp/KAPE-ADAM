@@ -527,6 +527,26 @@ body {
   color: var(--green-mid);
 }
 
+.order-card-status.confirmed {
+  background: rgba(200, 164, 92, 0.1);
+  color: var(--gold-dark);
+}
+
+.order-card-status.preparing {
+  background: rgba(61, 122, 94, 0.1);
+  color: var(--green-light);
+}
+
+.order-card-status.ready {
+  background: rgba(45, 90, 71, 0.15);
+  color: var(--green-mid);
+}
+
+.order-card-status.cancelled {
+  background: rgba(192, 57, 43, 0.1);
+  color: #c0392b;
+}
+
 .order-card-date {
   font-size: 11px;
   color: var(--brown-light);
@@ -735,6 +755,21 @@ body {
 
 .empty-state p {
   font-size: 15px;
+}
+
+@keyframes adminSpin {
+  to { transform: rotate(360deg); }
+}
+
+.empty-state:empty::before {
+  content: '';
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  border: 3px solid var(--cream-dark);
+  border-top-color: var(--green-deep);
+  border-radius: 50%;
+  animation: adminSpin 0.8s linear infinite;
 }
 
 /* ===== Table (used by Order Items tab) ===== */

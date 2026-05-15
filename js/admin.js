@@ -2,22 +2,10 @@
   'use strict';
 
   const SUPABASE_URL = 'https://uqvayowsuyrkqcdmdfnw.supabase.co';
-  const SERVICE_ROLE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVxdmF5b3dzdXlya3FjZG1kZm53Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3ODgwMDU3OSwiZXhwIjoyMDk0Mzc2NTc5fQ.L2S-w4ujca80A63wfo9-33_fzBfIr82VzA4YjmDwWxk';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVxdmF5b3dzdXlya3FjZG1kZm53Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4MDA1NzksImV4cCI6MjA5NDM3NjU3OX0.Jfx7QM8yCD9TBw0KFl91jLFGUWIU17F5R7z2bAAW6Lk';
 
   const { createClient } = window.supabase;
-  const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
-    auth: { persistSession: false },
-  });
-
-  const ADMIN_PASSWORD = 'admin123';
-
-  const gate       = document.getElementById('adminGate');
-  const dashboard  = document.getElementById('adminDashboard');
-  const gateError  = document.getElementById('gateError');
-  const gatePass   = document.getElementById('gatePassword');
-  const gateBtn    = document.getElementById('gateBtn');
-  const lockBtn    = document.getElementById('adminLockBtn');
-  const adminStatus = document.getElementById('adminStatus');
+  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   const usersBody  = document.getElementById('usersBody');
   const ordersBody = document.getElementById('ordersBody');
@@ -30,8 +18,9 @@
   let profilesCache = {};
 
   function showAdminError(msg) {
-    gateError.style.display = msg ? 'block' : 'none';
-    gateError.textContent = msg;
+    const err = document.getElementById('gateError');
+    err.style.display = msg ? 'block' : 'none';
+    err.textContent = msg;
   }
 
   function toast(msg) {
@@ -71,48 +60,152 @@
 
   function unlock() {
     sessionStorage.setItem('admin_unlocked', '1');
-    gate.style.display = 'none';
-    dashboard.style.display = 'block';
+    document.getElementById('adminGate').style.display = 'none';
+    document.getElementById('adminDashboard').style.display = 'block';
     showAdminError('');
     loadData();
   }
 
   function lock() {
     sessionStorage.removeItem('admin_unlocked');
-    dashboard.style.display = 'none';
-    gate.style.display = 'flex';
-    gatePass.value = '';
+    document.getElementById('adminDashboard').style.display = 'none';
+    document.getElementById('adminGate').style.display = 'flex';
+    document.getElementById('gatePassword').value = '';
     showAdminError('');
   }
 
-  /* ---- Gate ---- */
-  if (sessionStorage.getItem('admin_unlocked')) {
-    unlock();
+  /* ---- Role-based gate ---- */
+  async function tryAutoAuth() {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return false;
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', session.user.id)
+      .maybeSingle();
+
+    if (profile && profile.role === 'admin') {
+      return true;
+    }
+    return false;
   }
 
-  gateBtn.addEventListener('click', function () {
-    if (gatePass.value === ADMIN_PASSWORD) {
+  async function initGate() {
+    if (sessionStorage.getItem('admin_unlocked')) {
       unlock();
-    } else {
-      showAdminError('Incorrect password');
+      return;
     }
-  });
-  gatePass.addEventListener('keydown', function (e) {
-    if (e.key === 'Enter') gateBtn.click();
-  });
 
-  lockBtn.addEventListener('click', lock);
+    const ok = await tryAutoAuth();
+    if (ok) {
+      unlock();
+      return;
+    }
+
+    const btn = document.getElementById('gateBtn');
+    const pass = document.getElementById('gatePassword');
+
+    btn.addEventListener('click', async function () {
+      if (!pass.value) { showAdminError('Enter password'); return; }
+
+      const authed = await tryAutoAuth();
+      if (authed) { unlock(); return; }
+
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        showAdminError('Sign in as an admin on the main site first');
+        return;
+      }
+      showAdminError('Your account does not have admin privileges');
+    });
+
+    pass.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') btn.click();
+    });
+
+    document.getElementById('adminLockBtn').addEventListener('click', lock);
+  }
+
+  initGate();
+
+  /* ---- Loading helpers ---- */
+  function setLoading(el, loading) {
+    if (!el) return;
+    el.innerHTML = loading
+      ? '<div class="empty-state"><p>Loading...</p></div>'
+      : '<div class="empty-state"><p>No data found</p></div>';
+  }
 
   /* ---- Load all data ---- */
   async function loadData() {
-    adminStatus.textContent = 'Loading...';
+    const status = document.getElementById('adminStatus');
+    if (status) status.textContent = 'Loading...';
+    setLoading(usersBody, true);
+    setLoading(ordersBody, true);
+    setLoading(itemsBody, true);
     await fetchProfiles();
     await Promise.all([
       loadUsers(),
       loadOrders(),
       loadItems(),
     ]);
-    adminStatus.textContent = 'Connected';
+    if (status) status.textContent = 'Connected';
+  }
+
+  /* ======= User Edit (no listener leak) ======= */
+  function setupUserEdit(card, user) {
+    const editBtn = card.querySelector('.user-btn-edit');
+    const delBtn = card.querySelector('.user-btn-delete');
+    const display = card.querySelector('.user-name-display');
+
+    editBtn.addEventListener('click', function onClickEdit() {
+      const current = display.textContent === 'No name set' ? '' : display.textContent;
+      display.innerHTML = `<input class="user-name-input" value="${current}" />`;
+      editBtn.textContent = 'Save';
+      editBtn.className = 'user-btn-save';
+
+      const cancel = document.createElement('button');
+      cancel.className = 'user-btn-cancel';
+      cancel.textContent = 'Cancel';
+      card.querySelector('.user-actions').appendChild(cancel);
+
+      function resetEdit() {
+        display.innerHTML = current || 'No name set';
+        editBtn.textContent = 'Edit';
+        editBtn.className = 'user-btn-edit';
+        cancel.remove();
+        editBtn.removeEventListener('click', onSave);
+        editBtn.addEventListener('click', onClickEdit, { once: true });
+      }
+
+      async function onSave() {
+        const input = display.querySelector('.user-name-input');
+        const newName = input.value.trim();
+        editBtn.disabled = true;
+        editBtn.textContent = 'Saving...';
+        const { error } = await supabase.from('profiles').update({ name: newName }).eq('id', card.dataset.id);
+        editBtn.disabled = false;
+        if (error) { toast('Error: ' + error.message); resetEdit(); return; }
+        display.innerHTML = newName || 'No name set';
+        resetEdit();
+        toast('User updated');
+      }
+
+      editBtn.removeEventListener('click', onClickEdit);
+      editBtn.addEventListener('click', onSave, { once: true });
+      cancel.addEventListener('click', resetEdit, { once: true });
+    }, { once: true });
+
+    delBtn.addEventListener('click', async function () {
+      if (!confirm('Delete user ' + user.email + ' and all their orders?')) return;
+      const uid = card.dataset.id;
+      const { error } = await supabase.rpc('admin_delete_user', { target_id: uid });
+      if (error) { toast('Delete failed: ' + error.message); return; }
+      card.remove();
+      usersCount.textContent = usersBody.children.length;
+      toast('User deleted');
+    });
   }
 
   /* ======= USERS ======= */
@@ -148,49 +241,7 @@
 
       usersBody.appendChild(card);
 
-      card.querySelector('.user-btn-edit').addEventListener('click', function () {
-        const display = card.querySelector('.user-name-display');
-        const current = display.textContent === 'No name set' ? '' : display.textContent;
-        display.innerHTML = `<input class="user-name-input" value="${current}" />`;
-        this.textContent = 'Save';
-        this.className = 'user-btn-save';
-
-        const cancel = document.createElement('button');
-        cancel.className = 'user-btn-cancel';
-        cancel.textContent = 'Cancel';
-        card.querySelector('.user-actions').appendChild(cancel);
-
-        cancel.addEventListener('click', function () {
-          display.innerHTML = current || 'No name set';
-          card.querySelector('.user-btn-save').textContent = 'Edit';
-          card.querySelector('.user-btn-save').className = 'user-btn-edit';
-          cancel.remove();
-        });
-
-        this.addEventListener('click', async function saveHandler() {
-          const input = display.querySelector('.user-name-input');
-          const newName = input.value.trim();
-          const { error } = await supabase.from('profiles').update({ name: newName }).eq('id', card.dataset.id);
-          if (error) { toast('Error: ' + error.message); return; }
-          display.innerHTML = newName || 'No name set';
-          card.querySelector('.user-btn-save').textContent = 'Edit';
-          card.querySelector('.user-btn-save').className = 'user-btn-edit';
-          cancel.remove();
-          toast('User updated');
-        }, { once: true });
-      });
-
-      card.querySelector('.user-btn-delete').addEventListener('click', async function () {
-        if (!confirm('Delete user ' + user.email + ' and all their orders?')) return;
-        const uid = card.dataset.id;
-
-        const { error } = await supabase.rpc('admin_delete_user', { target_id: uid });
-        if (error) { toast('Delete failed: ' + error.message); return; }
-
-        card.remove();
-        usersCount.textContent = usersBody.children.length;
-        toast('User deleted');
-      });
+      setupUserEdit(card, user);
     });
   }
 
@@ -254,7 +305,11 @@
         <div class="order-card-footer">
           <select class="order-status-select">
             <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>Pending</option>
+            <option value="confirmed" ${order.status === 'confirmed' ? 'selected' : ''}>Confirmed</option>
+            <option value="preparing" ${order.status === 'preparing' ? 'selected' : ''}>Preparing</option>
+            <option value="ready" ${order.status === 'ready' ? 'selected' : ''}>Ready</option>
             <option value="completed" ${order.status === 'completed' ? 'selected' : ''}>Completed</option>
+            <option value="cancelled" ${order.status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
           </select>
           <button class="admin-btn-delete order-btn-delete">Delete Order</button>
         </div>`;
