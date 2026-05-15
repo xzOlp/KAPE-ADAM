@@ -246,6 +246,19 @@
       showToast(toastEl, 'Session expired — please sign in again');
       return false;
     }
+
+    // Check if user's profile still exists (admin may have deleted it)
+    const { data: profile } = await getProfile(user.id);
+    if (!profile) {
+      await signOut();
+      currentUser = null;
+      navUser.style.display = 'none';
+      setLoginMode(false);
+      showOverlay();
+      showToast(toastEl, 'Your account has been removed. Please contact support.');
+      return false;
+    }
+
     currentUser = user;
     navUserEmail.textContent = user.email || 'User';
     navUser.style.display = 'flex';

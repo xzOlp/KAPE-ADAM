@@ -167,3 +167,33 @@ nav.scrolled { box-shadow: 0 4px 30px rgba(44, 24, 16, 0.08); }
   color: #c0392b !important;
   background: rgba(192, 57, 43, 0.06) !important;
 }
+
+@media (max-width: 768px) {
+  .nav-user {
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 12px 0;
+    margin-left: 0;
+    border-left: none;
+    border-top: 1px solid rgba(200, 164, 92, 0.15);
+    width: 100%;
+  }
+  .nav-user-email {
+    max-width: none;
+    font-size: 12px;
+  }
+  .nav-signout {
+    font-size: 12px !important;
+    padding: 8px 20px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  nav { padding: 0 14px; height: 60px; }
+  .nav-logo-text { font-size: 18px; }
+  .nav-logo-icon { width: 30px; height: 30px; font-size: 14px; }
+  .nav-links li button { font-size: 13px; padding: 10px; }
+  .nav-user { flex-direction: column; align-items: center; gap: 4px; padding-left: 0; border-left: none; }
+  .nav-user-email { max-width: none; font-size: 11px; }
+}

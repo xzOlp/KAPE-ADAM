@@ -132,3 +132,19 @@
   50%  { transform: scale(1.08); }
   100% { transform: scale(1); }
 }
+
+@media (max-width: 768px) {
+  .menu-grid { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; padding: 24px 20px 60px; }
+  .menu-card-header h3 { font-size: 18px; }
+  .menu-card-body { padding: 18px 20px 20px; }
+}
+
+@media (max-width: 480px) {
+  .menu-grid { grid-template-columns: 1fr; padding: 16px 14px 48px; gap: 16px; }
+  .menu-card-img { height: 160px; }
+  .menu-card-body { padding: 14px 16px 18px; }
+  .menu-card-header h3 { font-size: 17px; }
+  .menu-card-desc { font-size: 13px; margin-bottom: 14px; }
+  .add-to-cart { padding: 8px 14px; font-size: 12px; }
+  .menu-card-header .price { font-size: 16px; }
+}

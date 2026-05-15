@@ -191,11 +191,6 @@
         usersCount.textContent = usersBody.children.length;
         toast('User deleted');
       });
-
-        card.remove();
-        usersCount.textContent = usersBody.children.length;
-        toast('User deleted');
-      });
     });
   }
 

@@ -104,3 +104,25 @@
   transform: translateY(-2px);
   box-shadow: 0 12px 32px rgba(200, 164, 92, 0.3);
 }
+
+@media (max-width: 768px) {
+  .hero {
+    height: 70vh;
+    min-height: 440px;
+  }
+  .hero h1 { font-size: clamp(32px, 8vw, 52px); }
+  .hero p { font-size: clamp(14px, 2.5vw, 17px); }
+  .hero-cta { padding: 14px 28px; font-size: 13px; }
+}
+
+@media (max-width: 480px) {
+  .hero {
+    height: 60vh;
+    min-height: 380px;
+  }
+  .hero-badge { font-size: 10px; padding: 4px 14px; margin-bottom: 16px; }
+  .hero h1 { font-size: clamp(26px, 9vw, 36px); }
+  .hero p { font-size: 14px; margin-bottom: 28px; }
+  .hero-content { padding: 0 16px; }
+  .hero-cta { padding: 12px 22px; font-size: 12px; }
+}

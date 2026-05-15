@@ -239,3 +239,30 @@
   padding-top: 12px;
   border-top: 1.5px solid var(--cream-dark);
 }
+
+@media (max-width: 768px) {
+  .features { grid-template-columns: 1fr; padding: 32px 20px 12px; gap: 20px; }
+  .promos { grid-template-columns: 1fr; padding: 16px 20px 48px; }
+  .promo-card { height: 200px; }
+  .feature-card { padding: 28px 20px; }
+  .orders-container { padding: 24px 16px 60px; }
+  .order-card { padding: 20px; }
+  .section-header { padding: 48px 16px 8px; }
+  .section-header h2 { font-size: clamp(26px, 6vw, 34px); }
+}
+
+@media (max-width: 480px) {
+  .features { padding: 24px 14px 8px; gap: 16px; }
+  .promos { padding: 12px 14px 40px; gap: 16px; }
+  .promo-card { height: 180px; }
+  .promo-content { padding: 24px 20px; }
+  .promo-content h3 { font-size: 18px; }
+  .promo-content p { font-size: 12px; }
+  .orders-container { padding: 16px 12px 48px; }
+  .order-card { padding: 16px; }
+  .order-card-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .order-card-total { font-size: 16px; }
+  .section-header { padding: 36px 14px 4px; }
+  .section-header h2 { font-size: 24px; }
+  .section-header p { font-size: 14px; }
+}

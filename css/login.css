@@ -200,6 +200,14 @@
   box-shadow: none !important;
 }
 
+@media (max-width: 768px) {
+  .login-card {
+    padding: 40px 28px 36px;
+  }
+  .login-title { font-size: 26px; }
+  .login-card { width: 380px; }
+}
+
 @media (max-width: 480px) {
   .login-card {
     padding: 36px 24px 32px;
