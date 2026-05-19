@@ -12,7 +12,7 @@
 | File | Role |
 |------|------|
 | `index.html` | Customer-facing shop: menu, cart, orders, auth |
-| `admin.html` | Admin panel: gate screen → user/order management |
+| `admin.html` | Admin panel: dashboard with user/order management, Sign Out in nav |
 | `js/supabase.js` | Supabase client + DB helpers (IIFE, `window.EmbOakSupabase`) |
 | `js/shop.js` | Menu data, cart logic, renderers (IIFE, `window.EmbOak`) |
 | `js/app.js` | Glue code: auth, tab switching, checkout, order polling |
@@ -26,9 +26,10 @@
 
 - All JS uses IIFE + `window.*` namespace — **no import/export**
 - CSS uses custom properties in `:root` (`--green-deep`, `--cream`, `--gold`, etc.) — use them for any new UI
-- Cart is in-memory only (no persistence)
+- Cart is persisted in localStorage (key: `emboak_cart`) — survives refresh, tab close, sign out. Cleared on checkout.
 - Orders auto-advance status: frontend polls every 5s and calls `advanceOrderStatus` sequentially through the pipeline (`pending → confirmed → preparing → ready → completed`)
-- Admin password hardcoded in `admin.js:84` (`ADMIN_PASSWORD = 'admin123'`)
+- Admin panel has **no gate** — opens directly to dashboard. **Sign Out** button in nav signs out of Supabase and redirects to `index.html`.
+- After successful checkout, user auto-redirects to **My Orders** tab
 - Admin uses Supabase **service key** (`supabase.js:5`) — any admin.js change that touches Supabase must use it
 - Supabase service key exposed client-side — do NOT add new RLS-bypassing operations without noting the risk
 
@@ -57,6 +58,7 @@ The `.claude/` and `.claude-flow/` directories contain RuFlo agent orchestration
 ## Deployment & Credentials
 
 - **GitHub**: https://github.com/xzOlp/KAPE-ADAM.git
+- **GitHub PAT**: stored in `CLAUDE.md` (push via `git remote set-url origin https://xzOlp:PAT@github.com/xzOlp/KAPE-ADAM.git`)
 - **Netlify**: Auto-deploys from GitHub — no build command needed (pure static site)
 - **Supabase URL**: https://uqvayowsuyrkqcdmdfnw.supabase.co
 - **Supabase Anon Key**: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVxdmF5b3dzdXlya3FjZG1kZm53Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4MDA1NzksImV4cCI6MjA5NDM3NjU3OX0.Jfx7QM8yCD9TBw0KFl91jLFGUWIU17F5R7z2bAAW6Lk`
