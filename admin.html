@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ember & Oak — Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Lato:wght@300;400;700;900&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="stylesheet" href="css/admin.css" />
+  <link rel="stylesheet" href="css/status-flow.css" />
+</head>
+<body>
+
+  <!-- ===== Admin Gate ===== -->
+  <div id="adminGate" class="admin-gate">
+    <div class="admin-gate-card">
+      <div class="admin-gate-logo">E</div>
+      <h1>Admin Panel</h1>
+      <p>Enter the admin password to continue</p>
+      <div class="admin-gate-error" id="gateError"></div>
+      <input type="password" id="gatePassword" placeholder="Password" autocomplete="off" />
+      <button id="gateBtn">Unlock</button>
+    </div>
+  </div>
+
+  <!-- ===== Admin Dashboard ===== -->
+  <div id="adminDashboard" class="admin-dashboard" style="display:none">
+
+    <nav class="admin-nav">
+      <div class="admin-nav-brand">
+        <span class="admin-nav-logo">E</span>
+        <span>Ember &amp; Oak <small>Admin</small></span>
+      </div>
+      <div class="admin-nav-tabs">
+        <button class="admin-tab active" data-tab="adminUsers">Users</button>
+        <button class="admin-tab" data-tab="adminOrders">Orders</button>
+        <button class="admin-tab" data-tab="adminItems">Order Items</button>
+      </div>
+      <div class="admin-nav-actions">
+        <span id="adminStatus" class="admin-status"></span>
+        <button id="adminLockBtn">Lock</button>
+      </div>
+    </nav>
+
+    <main class="admin-main">
+      <!-- USERS -->
+      <section id="adminUsers" class="admin-content active">
+        <div class="admin-header">
+          <h2>Users</h2>
+          <div class="admin-count" id="usersCount">0</div>
+        </div>
+        <div class="user-grid" id="usersBody"></div>
+      </section>
+
+      <!-- ORDERS -->
+      <section id="adminOrders" class="admin-content">
+        <div class="admin-header">
+          <h2>Orders</h2>
+          <div class="admin-count" id="ordersCount">0</div>
+        </div>
+        <div class="orders-grid" id="ordersBody"></div>
+      </section>
+
+      <!-- ORDER ITEMS -->
+      <section id="adminItems" class="admin-content">
+        <div class="admin-header">
+          <h2>Order Items</h2>
+          <div class="admin-count" id="itemsCount">0</div>
+        </div>
+        <div id="itemsBody"></div>
+      </section>
+    </main>
+
+  </div>
+
+  <nav id="adminBottomNav" class="mobile-bottom-nav admin-bottom">
+    <button class="mb-tab active admin-tab" data-tab="adminUsers"><span class="mb-label">Users</span></button>
+    <button class="mb-tab admin-tab" data-tab="adminOrders"><span class="mb-label">Orders</span></button>
+    <button class="mb-tab admin-tab" data-tab="adminItems"><span class="mb-label">Items</span></button>
+  </nav>
+
+  <script src="js/shop.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>
