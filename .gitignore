@@ -1,0 +1,12 @@
+# RuFlo / Claude agent infrastructure
+.claude/
+.claude-flow/
+.swarm/
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
