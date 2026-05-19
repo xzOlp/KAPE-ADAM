@@ -85,7 +85,7 @@
     showAdminError('');
   }
 
-  const ADMIN_PASSWORD = 'admin123';
+  const ADMIN_PASSWORDS = ['admin123', 'adams apple'];
 
   /* ---- Gate ---- */
   async function initGate() {
@@ -95,7 +95,7 @@
     const pass = document.getElementById('gatePassword');
 
     btn.addEventListener('click', function () {
-      if (pass.value === ADMIN_PASSWORD) { unlock(); }
+      if (ADMIN_PASSWORDS.includes(pass.value)) { unlock(); }
       else { showAdminError('Incorrect password'); }
     });
 
