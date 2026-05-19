@@ -29,9 +29,10 @@
     ],
   };
 
-  let cart = [];
+  let cart = JSON.parse(localStorage.getItem('emboak_cart') || '[]');
 
   function getCart() { return cart; }
+  function saveCart() { localStorage.setItem('emboak_cart', JSON.stringify(cart)); }
 
   function addToCart(itemId) {
     const allItems = [...menuData.hot, ...menuData.cold, ...menuData.lattes];
@@ -40,19 +41,21 @@
     const existing = cart.find(i => i.id === itemId);
     if (existing) { existing.quantity += 1; }
     else { cart.push({ ...item, quantity: 1 }); }
+    saveCart();
     return item;
   }
 
-  function removeFromCart(id) { cart = cart.filter(i => i.id !== id); }
+  function removeFromCart(id) { cart = cart.filter(i => i.id !== id); saveCart(); }
 
   function updateQuantity(id, delta) {
     const item = cart.find(i => i.id === id);
     if (!item) return;
     item.quantity += delta;
     if (item.quantity <= 0) removeFromCart(id);
+    else saveCart();
   }
 
-  function clearCart() { cart = []; }
+  function clearCart() { cart = []; localStorage.removeItem('emboak_cart'); }
 
   function getCartCount() {
     return cart.reduce((sum, i) => sum + i.quantity, 0);
