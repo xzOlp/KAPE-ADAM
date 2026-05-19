@@ -76,9 +76,12 @@
     document.querySelectorAll('.order-admin-card').forEach(c => clearInterval(c._autoTimer));
   }
 
-  function lock() {
+  async function lock() {
     clearAllAutoTimers();
     sessionStorage.removeItem('admin_unlocked');
+    if (window.EmbOakSupabase) {
+      await window.EmbOakSupabase.signOut();
+    }
     window.location.href = 'index.html';
   }
 
