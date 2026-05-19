@@ -241,6 +241,7 @@
     }
     clearCart();
     updateUI();
+    switchTab('orders');
     showToast(toastEl, 'Order placed! View it in My Orders.');
   }
 
