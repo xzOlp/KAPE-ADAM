@@ -3,6 +3,9 @@
 .claude-flow/
 .swarm/
 
+# Embedded git artifacts
+`
+
 # OS files
 Thumbs.db
 .DS_Store
