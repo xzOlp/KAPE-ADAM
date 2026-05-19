@@ -13,20 +13,8 @@
 </head>
 <body>
 
-  <!-- ===== Admin Gate ===== -->
-  <div id="adminGate" class="admin-gate">
-    <div class="admin-gate-card">
-      <div class="admin-gate-logo">E</div>
-      <h1>Admin Panel</h1>
-      <p>Enter the admin password to continue</p>
-      <div class="admin-gate-error" id="gateError"></div>
-      <input type="password" id="gatePassword" placeholder="Password" autocomplete="off" />
-      <button id="gateBtn">Unlock</button>
-    </div>
-  </div>
-
   <!-- ===== Admin Dashboard ===== -->
-  <div id="adminDashboard" class="admin-dashboard" style="display:none">
+  <div id="adminDashboard" class="admin-dashboard">
 
     <nav class="admin-nav">
       <div class="admin-nav-brand">
@@ -40,7 +28,7 @@
       </div>
       <div class="admin-nav-actions">
         <span id="adminStatus" class="admin-status"></span>
-        <button id="adminLockBtn">Lock</button>
+        <button id="adminSignOutBtn">Sign Out</button>
       </div>
     </nav>
 

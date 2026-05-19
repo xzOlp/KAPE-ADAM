@@ -19,12 +19,6 @@
 
   let profilesCache = {};
 
-  function showAdminError(msg) {
-    const err = document.getElementById('gateError');
-    err.style.display = msg ? 'block' : 'none';
-    err.textContent = msg;
-  }
-
   function toast(msg) {
     let el = document.querySelector('.admin-toast');
     if (!el) {
@@ -64,49 +58,15 @@
     });
   });
 
-  function unlock() {
-    sessionStorage.setItem('admin_unlocked', '1');
-    document.getElementById('adminGate').style.display = 'none';
-    document.getElementById('adminDashboard').style.display = 'block';
-    showAdminError('');
-    loadData();
-  }
-
-  function clearAllAutoTimers() {
-    document.querySelectorAll('.order-admin-card').forEach(c => clearInterval(c._autoTimer));
-  }
-
-  async function lock() {
-    clearAllAutoTimers();
-    sessionStorage.removeItem('admin_unlocked');
+  async function signOut() {
     if (window.EmbOakSupabase) {
       await window.EmbOakSupabase.signOut();
     }
     window.location.href = 'index.html';
   }
 
-  const ADMIN_PASSWORDS = ['admin123', 'adams apple'];
-
-  /* ---- Gate ---- */
-  async function initGate() {
-    if (sessionStorage.getItem('admin_unlocked')) { unlock(); return; }
-
-    const btn = document.getElementById('gateBtn');
-    const pass = document.getElementById('gatePassword');
-
-    btn.addEventListener('click', function () {
-      if (ADMIN_PASSWORDS.includes(pass.value)) { unlock(); }
-      else { showAdminError('Incorrect password'); }
-    });
-
-    pass.addEventListener('keydown', function (e) {
-      if (e.key === 'Enter') btn.click();
-    });
-
-    document.getElementById('adminLockBtn').addEventListener('click', lock);
-  }
-
-  initGate();
+  document.getElementById('adminSignOutBtn').addEventListener('click', signOut);
+  loadData();
 
   /* ---- Loading helpers ---- */
   function setLoading(el, loading) {

@@ -27,120 +27,6 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* ===== Password Gate ===== */
-.admin-gate {
-  position: fixed;
-  inset: 0;
-  z-index: 2000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: url('https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=1600&q=85') center / cover no-repeat;
-}
-
-.admin-gate::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, rgba(27, 58, 45, 0.9), rgba(27, 58, 45, 0.75));
-}
-
-.admin-gate-card {
-  position: relative;
-  z-index: 2;
-  width: 380px;
-  max-width: 90vw;
-  padding: 44px 36px 36px;
-  background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(200, 164, 92, 0.2);
-  border-radius: 24px;
-  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
-  text-align: center;
-}
-
-.admin-gate-logo {
-  width: 48px;
-  height: 48px;
-  margin: 0 auto 16px;
-  background: linear-gradient(135deg, var(--green-deep), var(--green-mid));
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--gold);
-  font-family: var(--font-serif);
-  font-size: 22px;
-  font-weight: 700;
-  border: 2px solid var(--gold);
-}
-
-.admin-gate-card h1 {
-  font-family: var(--font-serif);
-  font-size: 26px;
-  color: var(--white);
-  margin-bottom: 4px;
-}
-
-.admin-gate-card p {
-  font-size: 14px;
-  color: rgba(245, 240, 232, 0.6);
-  margin-bottom: 24px;
-}
-
-.admin-gate-error {
-  display: none;
-  font-size: 13px;
-  color: #e74c3c;
-  margin-bottom: 12px;
-  padding: 8px 12px;
-  background: rgba(192, 57, 43, 0.15);
-  border-radius: 8px;
-}
-
-.admin-gate-card input {
-  width: 100%;
-  padding: 14px 16px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(200, 164, 92, 0.15);
-  border-radius: 12px;
-  font-family: var(--font-sans);
-  font-size: 15px;
-  color: var(--white);
-  outline: none;
-  margin-bottom: 16px;
-  transition: border-color 0.3s;
-}
-
-.admin-gate-card input:focus {
-  border-color: var(--gold);
-  box-shadow: 0 0 0 3px rgba(200, 164, 92, 0.15);
-}
-
-.admin-gate-card input::placeholder { color: rgba(245, 240, 232, 0.3); }
-
-.admin-gate-card button {
-  width: 100%;
-  padding: 14px;
-  background: linear-gradient(135deg, var(--gold), var(--gold-dark));
-  color: var(--green-deep);
-  font-family: var(--font-sans);
-  font-size: 15px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
-  border: none;
-  border-radius: 50px;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-
-.admin-gate-card button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 32px rgba(200, 164, 92, 0.3);
-}
-
 /* ===== Nav ===== */
 .admin-nav {
   background: var(--green-deep);
@@ -230,7 +116,7 @@ body {
   color: rgba(245, 240, 232, 0.5);
 }
 
-#adminLockBtn {
+#adminSignOutBtn {
   background: rgba(255, 255, 255, 0.1);
   border: none;
   color: var(--white);
@@ -244,7 +130,7 @@ body {
   transition: all var(--transition);
 }
 
-#adminLockBtn:hover {
+#adminSignOutBtn:hover {
   background: rgba(192, 57, 43, 0.3);
 }
 
