@@ -79,10 +79,7 @@
   function lock() {
     clearAllAutoTimers();
     sessionStorage.removeItem('admin_unlocked');
-    document.getElementById('adminDashboard').style.display = 'none';
-    document.getElementById('adminGate').style.display = 'flex';
-    document.getElementById('gatePassword').value = '';
-    showAdminError('');
+    window.location.href = 'index.html';
   }
 
   const ADMIN_PASSWORDS = ['admin123', 'adams apple'];
